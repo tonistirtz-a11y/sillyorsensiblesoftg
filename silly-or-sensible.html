@@ -6,7 +6,6 @@
 <title>Silly or Sensible</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Fredoka:wght@500;700&display=swap">
 <style>
-/* Layout: game-show stage — mystery card board, then one big sentence card with two word buttons */
 :root{
   --bg:#1d2a5c; --stage:#25367a; --card:#fffdf6; --ink:#1b1f3a;
   --sun:#ffc93c; --mint:#3ed6a0; --coral:#ff6b6b; --sky:#7cc7ff; --muted:#b9c3f0;
@@ -15,6 +14,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{height:100%}
 body{background:var(--bg);color:#fff;font-family:var(--read);margin:0;padding-inline:16px;padding-block:12px 24px;
   background-image:radial-gradient(circle at 20% 0%,#2d3f8f 0,transparent 55%),radial-gradient(circle at 90% 100%,#2a2f6e 0,transparent 50%)}
@@ -28,8 +28,6 @@ h1 .s{color:var(--coral)} h1 .n{color:var(--mint)}
 .iconbtn{background:var(--stage);border:2px solid #3a4ea0;color:#fff;border-radius:12px;padding:6px 10px;font-size:1.1rem;cursor:pointer;font-family:var(--display)}
 .iconbtn:focus-visible,button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
 .sub{color:var(--muted);margin:0;font-size:1.05rem}
-
-/* board */
 .board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
 @media (max-width:560px){.board{grid-template-columns:repeat(3,1fr)}}
 .tile{aspect-ratio:3/4;max-width:100%;border:none;border-radius:16px;cursor:pointer;font-family:var(--display);font-weight:700;font-size:clamp(2rem,6vw,3.2rem);color:var(--ink);
@@ -38,8 +36,6 @@ h1 .s{color:var(--coral)} h1 .n{color:var(--mint)}
 .tile:nth-child(3n){background:linear-gradient(160deg,var(--sky),#4aa3f0);box-shadow:0 6px 0 #2a6fb0}
 .tile:nth-child(4n){background:linear-gradient(160deg,var(--mint),#22b083);box-shadow:0 6px 0 #16805f}
 .tile.done{background:#2c3c85;box-shadow:none;color:var(--sun);cursor:default;transform:none;font-size:1.6rem}
-
-/* play card */
 .play{background:var(--card);color:var(--ink);border-radius:22px;padding:clamp(18px,4vw,36px);display:flex;flex-direction:column;gap:22px;box-shadow:0 10px 0 #0f1740}
 .cardno{font-family:var(--display);color:#6a6f99;font-size:1rem;letter-spacing:1px;text-transform:uppercase}
 .sentence{font-size:clamp(1.8rem,5.2vw,3rem);line-height:1.5;font-weight:700;margin:0;text-wrap:balance}
@@ -62,13 +58,9 @@ h1 .s{color:var(--coral)} h1 .n{color:var(--mint)}
 .ghost{background:none;border:2px solid #c9cbe0;color:#3a3f6b;border-radius:12px;padding:8px 14px;font-family:var(--display);font-size:1rem;cursor:pointer}
 .feedback{min-height:1.6em;text-align:center;font-family:var(--display);font-size:clamp(1.3rem,3.6vw,1.8rem);margin:0}
 .feedback.ok{color:#0d7a54}.feedback.no{color:#c0262f}
-
-/* streak */
 .meter{display:flex;gap:6px}
 .dot{width:20px;height:20px;border-radius:50%;background:#33438e;border:2px solid #4b5db4}
 .dot.on{background:var(--sun);border-color:#ffe08a;box-shadow:0 0 10px var(--sun)}
-
-/* overlay */
 .overlay{position:fixed;inset:0;background:rgba(15,20,55,.86);display:grid;place-items:center;padding:16px;z-index:20}
 .pop{background:var(--card);color:var(--ink);border-radius:24px;padding:28px;max-width:560px;width:100%;text-align:center;display:flex;flex-direction:column;gap:16px;animation:bounce .45s ease}
 .pop h2{font-family:var(--display);font-size:clamp(1.8rem,5vw,2.6rem);margin:0;text-wrap:balance}
@@ -78,14 +70,11 @@ h1 .s{color:var(--coral)} h1 .n{color:var(--mint)}
 @keyframes bounce{0%{transform:scale(.7)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
 @keyframes shake{0%,100%{transform:none}25%{transform:translateX(-8px) rotate(-1deg)}75%{transform:translateX(8px) rotate(1deg)}}
 .shake{animation:shake .35s}
-
-/* teacher panel */
 textarea{width:100%;min-height:220px;font-family:ui-monospace,Menlo,monospace;font-size:.95rem;border-radius:12px;border:2px solid #c9cbe0;padding:10px;color:var(--ink);background:#fff}
 .help{font-size:1rem!important;font-weight:400!important;text-align:left;color:#4a4f7a}
 canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:30}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
-
 </head>
 <body>
 <canvas id="fx"></canvas>
@@ -141,7 +130,7 @@ const BREAKS = [
  "Be a GIANT! Stomp in place 5 times.",
  "Bang your gavel like a JUDGE 3 times: Order! Order!",
  "Tiptoe to the EDGE of your chair and back.",
- "Flip pretend PAGES in the air — 6 flips!",
+ "Flip pretend PAGES in the air, 6 flips!",
  "Make a BRIDGE with your arms over your head.",
  "Do 5 jumping jacks!",
  "Touch something in your room that is LARGE.",
@@ -170,7 +159,7 @@ function parse(txt){ return txt.split("\n").map(l=>l.trim()).filter(Boolean).map
 let raw = DEFAULT;
 try{ const saved=localStorage.getItem("sos-set"); if(saved && parse(saved).length) raw=saved; }catch(e){}
 let items = parse(raw);
-let done = new Set(), stars=0, streak=0, breakCount=0, cur=null, picked=null, tried=new Set(), firstTry=true;
+let done = new Set(), stars=0, streak=0, breakCount=0, cur=null, picked=null, firstTry=true;
 
 const $=id=>document.getElementById(id);
 function shuffle(a){return a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(v=>v[1]);}
@@ -189,11 +178,11 @@ function renderSentence(word,state){
   $("sentence").innerHTML="";
   $("sentence").append(a);
   const sp=document.createElement("span"); sp.className="blank"+(word?" filled":"")+(state?" "+state:"");
-  sp.textContent=word||" "; $("sentence").append(sp, b||"");
+  sp.textContent=word||"\u00a0"; $("sentence").append(sp, b||"");
 }
 
 function open(i){
-  cur=items[i]; cur.i=i; picked=null; tried=new Set(); firstTry=true;
+  cur=items[i]; cur.i=i; picked=null; firstTry=true;
   $("boardView").hidden=true; $("playView").hidden=false;
   $("cardno").textContent=`Card ${i+1}`; $("fb").textContent=""; $("fb").className="feedback";
   $("judge").hidden=true; $("prompt").textContent="Tap a word to try it in the sentence.";
@@ -218,7 +207,7 @@ function judge(saysSense){
   const correctCall = saysSense===isRight;
   if(!correctCall){
     firstTry=false; sfx.oops(); $("fb").className="feedback no";
-    $("fb").textContent="Hmm… read it one more time, slowly. 👀";
+    $("fb").textContent="Hmm... read it one more time, slowly. 👀";
     $("sentence").classList.remove("shake"); void $("sentence").offsetWidth; $("sentence").classList.add("shake");
     return;
   }
@@ -229,7 +218,6 @@ function judge(saysSense){
     $("judge").hidden=true; $("prompt").textContent="Now try the other word!"; picked=null; $("stars").textContent=stars;
     return;
   }
-  // correct & sensible
   sfx.win(); renderSentence(picked,"good"); confetti();
   stars += firstTry?3:2; streak = firstTry?streak+1:0;
   done.add(cur.i); breakCount++;
@@ -282,7 +270,6 @@ function teacher(){
   };
 }
 
-/* confetti */
 const cv=$("fx"), cx=cv.getContext("2d"); let parts=[];
 function size(){cv.width=innerWidth;cv.height=innerHeight} addEventListener("resize",size); size();
 function confetti(){
@@ -303,6 +290,5 @@ $("teach").onclick=teacher;
 $("snd").onclick=()=>{sound=!sound;$("snd").textContent=sound?"🔊":"🔇";};
 drawBoard();
 </script>
-
 </body>
 </html>
