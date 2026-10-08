@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Silly or Sensible</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Fredoka:wght@500;700&display=swap">
+<style>
+/* Layout: game-show stage — mystery card board, then one big sentence card with two word buttons */
+:root{
+  --bg:#1d2a5c; --stage:#25367a; --card:#fffdf6; --ink:#1b1f3a;
+  --sun:#ffc93c; --mint:#3ed6a0; --coral:#ff6b6b; --sky:#7cc7ff; --muted:#b9c3f0;
+  --display:"Fredoka","Comic Neue",system-ui,sans-serif;
+  --read:"Comic Neue","Comic Sans MS",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:#fff;font-family:var(--read);margin:0;padding-inline:16px;padding-block:12px 24px;
+  background-image:radial-gradient(circle at 20% 0%,#2d3f8f 0,transparent 55%),radial-gradient(circle at 90% 100%,#2a2f6e 0,transparent 50%)}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(1.5rem,4vw,2.3rem);margin:0;letter-spacing:.5px}
+h1 .s{color:var(--coral)} h1 .n{color:var(--mint)}
+.hud{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pill{background:var(--stage);border:2px solid #3a4ea0;border-radius:999px;padding:6px 14px;font-family:var(--display);font-size:1.05rem;display:flex;gap:6px;align-items:center;font-variant-numeric:tabular-nums}
+.pill b{color:var(--sun)}
+.iconbtn{background:var(--stage);border:2px solid #3a4ea0;color:#fff;border-radius:12px;padding:6px 10px;font-size:1.1rem;cursor:pointer;font-family:var(--display)}
+.iconbtn:focus-visible,button:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
+.sub{color:var(--muted);margin:0;font-size:1.05rem}
+
+/* board */
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+@media (max-width:560px){.board{grid-template-columns:repeat(3,1fr)}}
+.tile{aspect-ratio:3/4;max-width:100%;border:none;border-radius:16px;cursor:pointer;font-family:var(--display);font-weight:700;font-size:clamp(2rem,6vw,3.2rem);color:var(--ink);
+  background:linear-gradient(160deg,var(--sun),#ffa62b);box-shadow:0 6px 0 #c77a12;transition:transform .15s}
+.tile:hover{transform:translateY(-4px) rotate(-2deg)}
+.tile:nth-child(3n){background:linear-gradient(160deg,var(--sky),#4aa3f0);box-shadow:0 6px 0 #2a6fb0}
+.tile:nth-child(4n){background:linear-gradient(160deg,var(--mint),#22b083);box-shadow:0 6px 0 #16805f}
+.tile.done{background:#2c3c85;box-shadow:none;color:var(--sun);cursor:default;transform:none;font-size:1.6rem}
+
+/* play card */
+.play{background:var(--card);color:var(--ink);border-radius:22px;padding:clamp(18px,4vw,36px);display:flex;flex-direction:column;gap:22px;box-shadow:0 10px 0 #0f1740}
+.cardno{font-family:var(--display);color:#6a6f99;font-size:1rem;letter-spacing:1px;text-transform:uppercase}
+.sentence{font-size:clamp(1.8rem,5.2vw,3rem);line-height:1.5;font-weight:700;margin:0;text-wrap:balance}
+.blank{display:inline-block;min-width:4.5em;border-bottom:5px solid var(--ink);text-align:center;padding:0 .2em;transition:all .2s}
+.blank.filled{border-bottom-color:transparent;background:#fff1c2;border-radius:10px;color:#b4500e}
+.blank.silly{background:#ffd6d6;color:#c0262f}
+.blank.good{background:#c9f5e3;color:#0d7a54}
+.words{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.word{flex:1 1 200px;font-family:var(--read);font-weight:700;font-size:clamp(2rem,6vw,3rem);padding:18px 10px;border-radius:18px;border:4px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 6px 0 var(--ink);transition:transform .1s}
+.word:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
+.word.picked{background:#fff1c2}
+.word.out{opacity:.35;text-decoration:line-through;cursor:default}
+.prompt{text-align:center;font-family:var(--display);font-size:clamp(1.15rem,3vw,1.5rem);color:#3a3f6b;margin:0}
+.judge{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.jb{flex:1 1 220px;border:none;border-radius:18px;padding:16px;font-family:var(--display);font-weight:700;font-size:clamp(1.4rem,4vw,1.9rem);cursor:pointer;color:#fff}
+.jb.sense{background:var(--mint);box-shadow:0 6px 0 #16805f}
+.jb.silly{background:var(--coral);box-shadow:0 6px 0 #b8383f}
+.jb:active{transform:translateY(4px);box-shadow:none}
+.row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ghost{background:none;border:2px solid #c9cbe0;color:#3a3f6b;border-radius:12px;padding:8px 14px;font-family:var(--display);font-size:1rem;cursor:pointer}
+.feedback{min-height:1.6em;text-align:center;font-family:var(--display);font-size:clamp(1.3rem,3.6vw,1.8rem);margin:0}
+.feedback.ok{color:#0d7a54}.feedback.no{color:#c0262f}
+
+/* streak */
+.meter{display:flex;gap:6px}
+.dot{width:20px;height:20px;border-radius:50%;background:#33438e;border:2px solid #4b5db4}
+.dot.on{background:var(--sun);border-color:#ffe08a;box-shadow:0 0 10px var(--sun)}
+
+/* overlay */
+.overlay{position:fixed;inset:0;background:rgba(15,20,55,.86);display:grid;place-items:center;padding:16px;z-index:20}
+.pop{background:var(--card);color:var(--ink);border-radius:24px;padding:28px;max-width:560px;width:100%;text-align:center;display:flex;flex-direction:column;gap:16px;animation:bounce .45s ease}
+.pop h2{font-family:var(--display);font-size:clamp(1.8rem,5vw,2.6rem);margin:0;text-wrap:balance}
+.pop p{font-size:clamp(1.3rem,3.6vw,1.7rem);margin:0;font-weight:700}
+.big{background:var(--sun);color:var(--ink);border:none;border-radius:16px;padding:14px 24px;font-family:var(--display);font-weight:700;font-size:1.4rem;cursor:pointer;box-shadow:0 5px 0 #c77a12}
+.timer{font-family:var(--display);font-size:3rem;color:var(--coral);font-variant-numeric:tabular-nums}
+@keyframes bounce{0%{transform:scale(.7)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-8px) rotate(-1deg)}75%{transform:translateX(8px) rotate(1deg)}}
+.shake{animation:shake .35s}
+
+/* teacher panel */
+textarea{width:100%;min-height:220px;font-family:ui-monospace,Menlo,monospace;font-size:.95rem;border-radius:12px;border:2px solid #c9cbe0;padding:10px;color:var(--ink);background:#fff}
+.help{font-size:1rem!important;font-weight:400!important;text-align:left;color:#4a4f7a}
+canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:30}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+</head>
+<body>
+<canvas id="fx"></canvas>
+<div class="wrap">
+  <header>
+    <h1><span class="s">Silly</span> or <span class="n">Sensible?</span></h1>
+    <div class="hud">
+      <div class="pill">⭐ <b id="stars">0</b></div>
+      <div class="pill">🔥 Streak <b id="streak">0</b></div>
+      <button class="iconbtn" id="snd" aria-label="Sound on or off">🔊</button>
+      <button class="iconbtn" id="teach" aria-label="Teacher setup">⚙️</button>
+    </div>
+  </header>
+
+  <section id="boardView" class="wrap">
+    <p class="sub">Pick a mystery card! Read the sentence with each word. Which one is silly?</p>
+    <div class="board" id="board"></div>
+    <div class="row" style="align-items:center">
+      <div class="meter" id="meter" aria-label="Brain break meter"></div>
+      <button class="iconbtn" id="reset">↺ New game</button>
+    </div>
+  </section>
+
+  <section id="playView" class="play" hidden>
+    <div class="row"><span class="cardno" id="cardno">Card 1</span><button class="ghost" id="back">← Cards</button></div>
+    <p class="sentence" id="sentence"></p>
+    <p class="prompt" id="prompt">Tap a word to try it in the sentence.</p>
+    <div class="words" id="words"></div>
+    <div class="judge" id="judge" hidden>
+      <button class="jb sense" id="sense">👍 Makes sense!</button>
+      <button class="jb silly" id="silly">🤪 That's silly!</button>
+    </div>
+    <p class="feedback" id="fb" aria-live="polite"></p>
+  </section>
+</div>
+
+<div class="overlay" id="ov" hidden><div class="pop" id="pop"></div></div>
+
+<script>
+const DEFAULT = `Don't stand too close to the ___ of the pool. | edge | page
+Please turn to the next ___ in your book. | page | edge
+I would like a ___ glass of milk. | large | judge
+The ___ was taller than the trees. | giant | edge
+The ___ told the jury to be quiet. | judge | bridge
+What is your ___ on your next birthday? | age | page
+We walked across the ___ over the river. | bridge | large
+It is time to ___ into your play clothes. | change | age
+A ___ dog ran across the yard. | large | judge
+There is a picture on every ___. | page | edge`;
+
+const BREAKS = [
+ "Stand up and make yourself as LARGE as you can!",
+ "Be a GIANT! Stomp in place 5 times.",
+ "Bang your gavel like a JUDGE 3 times: Order! Order!",
+ "Tiptoe to the EDGE of your chair and back.",
+ "Flip pretend PAGES in the air — 6 flips!",
+ "Make a BRIDGE with your arms over your head.",
+ "Do 5 jumping jacks!",
+ "Touch something in your room that is LARGE.",
+ "CHANGE seats! Wiggle and sit back down."
+];
+const CHEERS = ["Nailed it!","Super reader!","You got it!","Boom! 💥","Sharp eyes!","Awesome!"];
+const SILLYCATCH = ["Good catch! That IS silly! 😂","Ha! You spotted the silly one!","Yep, silly! Now try the other word."];
+
+let sound = true, actx = null;
+function beep(notes){ if(!sound) return; try{
+  actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+  let t = actx.currentTime;
+  notes.forEach(([f,d,type])=>{const o=actx.createOscillator(),g=actx.createGain();o.type=type||"triangle";o.frequency.value=f;
+    g.gain.setValueAtTime(.18,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d);t+=d*.8;});
+}catch(e){} }
+const sfx = {
+  win:()=>beep([[523,.12],[659,.12],[784,.12],[1047,.3]]),
+  silly:()=>beep([[400,.12,"square"],[300,.12,"square"],[200,.25,"sawtooth"]]),
+  oops:()=>beep([[220,.25,"sine"]]),
+  tap:()=>beep([[700,.06,"sine"]])
+};
+
+function parse(txt){ return txt.split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{
+  const p=l.split("|").map(s=>s.trim()); return p.length>=3 && p[0].includes("___") ? {s:p[0],right:p[1],wrong:p[2]} : null;}).filter(Boolean); }
+
+let raw = DEFAULT;
+try{ const saved=localStorage.getItem("sos-set"); if(saved && parse(saved).length) raw=saved; }catch(e){}
+let items = parse(raw);
+let done = new Set(), stars=0, streak=0, breakCount=0, cur=null, picked=null, tried=new Set(), firstTry=true;
+
+const $=id=>document.getElementById(id);
+function shuffle(a){return a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(v=>v[1]);}
+
+function drawBoard(){
+  const b=$("board"); b.innerHTML="";
+  items.forEach((it,i)=>{const t=document.createElement("button");t.className="tile"+(done.has(i)?" done":"");
+    t.textContent=done.has(i)?"⭐":i+1; t.setAttribute("aria-label",done.has(i)?`Card ${i+1} finished`:`Mystery card ${i+1}`);
+    if(!done.has(i)) t.onclick=()=>{sfx.tap();open(i)}; b.appendChild(t);});
+  const m=$("meter"); m.innerHTML=""; for(let i=0;i<3;i++){const d=document.createElement("span");d.className="dot"+(i<breakCount?" on":"");m.appendChild(d);}
+  $("stars").textContent=stars; $("streak").textContent=streak;
+}
+
+function renderSentence(word,state){
+  const [a,b]=cur.s.split("___");
+  $("sentence").innerHTML="";
+  $("sentence").append(a);
+  const sp=document.createElement("span"); sp.className="blank"+(word?" filled":"")+(state?" "+state:"");
+  sp.textContent=word||" "; $("sentence").append(sp, b||"");
+}
+
+function open(i){
+  cur=items[i]; cur.i=i; picked=null; tried=new Set(); firstTry=true;
+  $("boardView").hidden=true; $("playView").hidden=false;
+  $("cardno").textContent=`Card ${i+1}`; $("fb").textContent=""; $("fb").className="feedback";
+  $("judge").hidden=true; $("prompt").textContent="Tap a word to try it in the sentence.";
+  renderSentence(null);
+  const w=$("words"); w.innerHTML="";
+  shuffle([cur.right,cur.wrong]).forEach(word=>{const btn=document.createElement("button");btn.className="word";btn.textContent=word;
+    btn.onclick=()=>pick(word,btn); w.appendChild(btn);});
+}
+
+function pick(word,btn){
+  if(btn.classList.contains("out")) return;
+  sfx.tap(); picked=word;
+  document.querySelectorAll(".word").forEach(b=>b.classList.toggle("picked",b===btn));
+  renderSentence(word);
+  $("prompt").textContent="Read the whole sentence out loud. Silly or sensible?";
+  $("judge").hidden=false; $("fb").textContent="";
+}
+
+function judge(saysSense){
+  if(!picked) return;
+  const isRight = picked===cur.right;
+  const correctCall = saysSense===isRight;
+  if(!correctCall){
+    firstTry=false; sfx.oops(); $("fb").className="feedback no";
+    $("fb").textContent="Hmm… read it one more time, slowly. 👀";
+    $("sentence").classList.remove("shake"); void $("sentence").offsetWidth; $("sentence").classList.add("shake");
+    return;
+  }
+  if(!isRight){
+    sfx.silly(); renderSentence(picked,"silly"); stars+=1;
+    $("fb").className="feedback ok"; $("fb").textContent=SILLYCATCH[Math.floor(Math.random()*SILLYCATCH.length)];
+    document.querySelectorAll(".word").forEach(b=>{if(b.textContent===picked){b.classList.add("out");b.classList.remove("picked")}});
+    $("judge").hidden=true; $("prompt").textContent="Now try the other word!"; picked=null; $("stars").textContent=stars;
+    return;
+  }
+  // correct & sensible
+  sfx.win(); renderSentence(picked,"good"); confetti();
+  stars += firstTry?3:2; streak = firstTry?streak+1:0;
+  done.add(cur.i); breakCount++;
+  $("judge").hidden=true; $("fb").className="feedback ok";
+  $("fb").textContent=CHEERS[Math.floor(Math.random()*CHEERS.length)]+(firstTry?" +3 ⭐":" +2 ⭐");
+  $("prompt").textContent="Read your sentence one last time!";
+  $("stars").textContent=stars; $("streak").textContent=streak;
+  setTimeout(next, 2200);
+}
+
+function next(){
+  $("playView").hidden=true; $("boardView").hidden=false; drawBoard();
+  if(done.size===items.length) return finale();
+  if(breakCount>=3){ breakCount=0; drawBoard(); brainBreak(); }
+}
+
+function showPop(html){ $("pop").innerHTML=html; $("ov").hidden=false; }
+function closePop(){ $("ov").hidden=true; }
+
+function brainBreak(){
+  const move=BREAKS[Math.floor(Math.random()*BREAKS.length)]; let s=20;
+  showPop(`<h2>🎉 Brain Break!</h2><p>${move}</p><div class="timer" id="bt">${s}</div><button class="big" id="bdone">I did it! ✔</button>`);
+  const iv=setInterval(()=>{s--; const el=$("bt"); if(el) el.textContent=s; if(s<=0){clearInterval(iv); sfx.win();}},1000);
+  $("bdone").onclick=()=>{clearInterval(iv); stars+=1; drawBoard(); closePop();};
+}
+
+function finale(){
+  confetti(); sfx.win();
+  showPop(`<h2>🏆 You finished all ${items.length} cards!</h2><p>⭐ ${stars} stars</p>
+   <p class="help">Bonus challenge: Write ONE sentence with a missing word and two choices. Make your teacher solve it!</p>
+   <button class="big" id="again">Play again</button>`);
+  $("again").onclick=()=>{closePop(); resetGame();};
+}
+
+function resetGame(){ done=new Set(); stars=0; streak=0; breakCount=0; $("playView").hidden=true; $("boardView").hidden=false; drawBoard(); }
+
+function teacher(){
+  showPop(`<h2>⚙️ Teacher setup</h2>
+   <p class="help">One sentence per line. Use ___ for the blank, then the <b>right</b> word, then the <b>silly</b> word:<br><code>The ___ told the jury to be quiet. | judge | bridge</code></p>
+   <textarea id="ta" aria-label="Sentences">${raw.replace(/</g,"&lt;")}</textarea>
+   <p class="help" id="tmsg"></p>
+   <div class="row"><button class="ghost" id="tdef">Restore soft-g set</button><span style="display:flex;gap:8px"><button class="ghost" id="tcancel">Cancel</button><button class="big" id="tsave">Save & start</button></span></div>`);
+  $("tcancel").onclick=closePop;
+  $("tdef").onclick=()=>{$("ta").value=DEFAULT;};
+  $("tsave").onclick=()=>{
+    const v=$("ta").value, p=parse(v);
+    if(!p.length){$("tmsg").textContent="No sentences found. Each line needs ___ and two words separated by |.";return;}
+    raw=v; items=p; try{localStorage.setItem("sos-set",v)}catch(e){}
+    closePop(); resetGame();
+  };
+}
+
+/* confetti */
+const cv=$("fx"), cx=cv.getContext("2d"); let parts=[];
+function size(){cv.width=innerWidth;cv.height=innerHeight} addEventListener("resize",size); size();
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cols=["#ffc93c","#3ed6a0","#ff6b6b","#7cc7ff","#ffffff"];
+  for(let i=0;i<120;i++) parts.push({x:innerWidth/2,y:innerHeight/3,vx:(Math.random()-.5)*14,vy:Math.random()*-12-4,c:cols[i%5],r:Math.random()*6+4,a:1});
+  if(parts.length<=120) loop();
+}
+function loop(){ cx.clearRect(0,0,cv.width,cv.height);
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.4;p.a-=.008;cx.globalAlpha=Math.max(p.a,0);cx.fillStyle=p.c;cx.fillRect(p.x,p.y,p.r,p.r*1.6)});
+  parts=parts.filter(p=>p.a>0&&p.y<cv.height+20); if(parts.length) requestAnimationFrame(loop); else cx.clearRect(0,0,cv.width,cv.height); }
+
+$("sense").onclick=()=>judge(true);
+$("silly").onclick=()=>judge(false);
+$("back").onclick=()=>{$("playView").hidden=true;$("boardView").hidden=false;drawBoard();};
+$("reset").onclick=resetGame;
+$("teach").onclick=teacher;
+$("snd").onclick=()=>{sound=!sound;$("snd").textContent=sound?"🔊":"🔇";};
+drawBoard();
+</script>
+
+</body>
+</html>
